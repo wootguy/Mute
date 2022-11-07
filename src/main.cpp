@@ -3,6 +3,8 @@
 #include "misc_utils.h"
 #include <map>
 #include <set>
+#include "message_overrides.h"
+#include "main.h"
 
 // Description of plugin
 plugin_info_t Plugin_info = {
@@ -17,23 +19,7 @@ plugin_info_t Plugin_info = {
 	PT_ANYPAUSE,	// (when) unloadable
 };
 
-struct PlayerState {
-	set<string> muteList;
-	string lastVban;
-};
-
 map<string, PlayerState*> g_player_states;
-
-PlayerState& getPlayerState(edict_t* plr) {
-	string steamId = getPlayerUniqueId(plr);
-
-	if (g_player_states.find(steamId) == g_player_states.end()) {
-		PlayerState* newState = new PlayerState();
-		g_player_states[steamId] = newState;
-	}
-
-	return *g_player_states[steamId];
-}
 
 void metamute() {
 	int ireceiver = atoi(CMD_ARGV(1));
@@ -189,7 +175,6 @@ int Voice_SetClientListening(int iReceiver, int iSender, int blisten) {
 	// 1) muting one player often mutes multiple people or the entire server
 	// 2) muting players in server A will mute different players in server B,
 	//    even if you never muted someone in server B.
-	// also I don't agree that text chat should be muted. That should be a separate command.
 	
 	RETURN_META_VALUE(MRES_SUPERCEDE, 1); // never mute
 }
@@ -198,6 +183,18 @@ void PluginInit() {
 	g_dll_hooks.pfnClientCommand = ClientCommand;
 	g_dll_hooks.pfnClientPutInServer = ClientJoin;
 	g_engine_hooks.pfnVoice_SetClientListening = Voice_SetClientListening;
+
+	g_engine_hooks.pfnMessageBegin = MessageBegin;
+	g_engine_hooks.pfnWriteAngle = WriteAngle;
+	g_engine_hooks.pfnWriteByte = WriteByte;
+	g_engine_hooks.pfnWriteChar = WriteChar;
+	g_engine_hooks.pfnWriteCoord = WriteCoord;
+	g_engine_hooks.pfnWriteEntity = WriteEntity;
+	g_engine_hooks.pfnWriteLong = WriteLong;
+	g_engine_hooks.pfnWriteShort = WriteShort;
+	g_engine_hooks.pfnWriteString = WriteString;
+	g_engine_hooks.pfnMessageEnd = MessageEnd;
+	g_engine_hooks_post.pfnMessageEnd = MessageEnd_post;
 
 	REG_SVR_COMMAND("metamute", metamute);
 }

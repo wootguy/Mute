@@ -6,9 +6,10 @@ set(DLL_INSTALL_PATH "svencoop/addons/metamod/dlls" CACHE FILEPATH "Where to ins
 project(Mute)
 
 set(SOURCE_FILES
-	src/main.cpp
+	src/main.h src/main.cpp
 	src/meta_init.h src/meta_init.cpp
 	src/misc_utils.h src/misc_utils.cpp
+	src/message_overrides.h src/message_overrides.cpp
 )
 
 include_directories(src)
