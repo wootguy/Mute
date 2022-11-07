@@ -24,8 +24,7 @@ string getPlayerUniqueId(edict_t* plr) {
 	return steamId;
 }
 
-string replaceString(string subject, string search, string replace)
-{
+string replaceString(string subject, string search, string replace) {
 	size_t pos = 0;
 	while ((pos = subject.find(search, pos)) != string::npos)
 	{
@@ -125,4 +124,15 @@ char* UTIL_VarArgs(char* format, ...)
 	va_end(argptr);
 
 	return string;
+}
+
+PlayerState& getPlayerState(edict_t* plr) {
+	string steamId = getPlayerUniqueId(plr);
+
+	if (g_player_states.find(steamId) == g_player_states.end()) {
+		PlayerState* newState = new PlayerState();
+		g_player_states[steamId] = newState;
+	}
+
+	return *g_player_states[steamId];
 }
