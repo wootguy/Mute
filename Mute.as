@@ -1,3 +1,5 @@
+void print(string text) { g_Game.AlertMessage( at_console, text); }
+void println(string text) { print(text + "\n"); }
 
 class PlayerState {
 	array<string> muteList;
@@ -167,15 +169,16 @@ void openPlayerListMuteMenu(EHandle h_plr, int page) {
 	g_menus[eidx].SetTitle("\\yMute who?");
 	
 	int numPlayers = 0;
+	int foundPlayers = 0;
 	
 	for (int i = 1; i <= g_Engine.maxClients; i++) {
 		CBasePlayer@ target = g_PlayerFuncs.FindPlayerByIndex(i);
 		
-		if (i == eidx) {
+		if (target is null || !target.IsConnected() || i == eidx) {
 			continue;
 		}
 		
-		int itempage = (i-1) / 7;
+		int itempage = (foundPlayers++) / 7;
 		
 		string steamId = g_EngineFuncs.GetPlayerAuthId( target.edict() );
 		if (target !is null && target.IsConnected()) {
@@ -222,7 +225,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args) {
 	PlayerState@ state = getPlayerState(plr);
 	
 	if ( args.ArgC() >= 1 ) {
-		if (args[0] == ".mute") {
+		if (args[0] == ".mute" || args[0] == "/mute" || (args[0] == "mute" && args.ArgC() == 1)) {
 			if (args.ArgC() > 1) {
 				CBasePlayer@ target = getMuteTarget(plr, args[1]);
 				if (target is null) {
@@ -255,8 +258,7 @@ HookReturnCode ClientSay( SayParameters@ pParams )
 	return HOOK_CONTINUE;
 }
 
-CClientCommand _lost("lost", "Find other players", @consoleCmd );
-CClientCommand _lost2("ping", "Find other players", @consoleCmd );
+CClientCommand _lost("mute", "mute player audio/model", @consoleCmd );
 
 void consoleCmd( const CCommand@ args )
 {
