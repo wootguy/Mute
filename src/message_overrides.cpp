@@ -47,7 +47,7 @@ void MessageArg::writeToCurrentMessage() {
 		WRITE_SHORT(ival);
 		break;
 	case MARG_STRING:
-		WRITE_STRING(sval);
+		WRITE_STRING(sval.c_str());
 		break;
 	default:
 		break;
@@ -148,15 +148,17 @@ void NetMessage::print() {
 }
 
 void hookTextMessage(NetMessage& msg) {
-	edict_t* sender = INDEXENT(msg.args[0].ival);
+	int isender = msg.args[0].ival;
+	edict_t* sender = INDEXENT(isender);
 
-	if (!isValidPlayer(sender)) {
-		return; // disonnected before sending message?
+	if (!isValidPlayer(sender) || isender < 1 || isender > gpGlobals->maxClients) {
+		msg.send(); // could be leave/join message
+		return;
 	}
 
 	string senderid = getPlayerUniqueId(sender);
 
-	if (msg.msg_dest == MSG_ALL) {
+	if (msg.msg_dest == MSG_ALL || msg.msg_dest == MSG_BROADCAST) {
 		for (int i = 1; i <= gpGlobals->maxClients; i++) {
 			edict_t* receiver = INDEXENT(i);
 
@@ -169,11 +171,12 @@ void hookTextMessage(NetMessage& msg) {
 				ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval));
 			}
 			else {
+				int sendMode = msg.msg_dest == MSG_ALL ? MSG_ONE : MSG_ONE_UNRELIABLE;
 				msg.send(MSG_ONE, receiver);
 			}
 		}
 	}
-	else {
+	else if (msg.msg_dest == MSG_ONE || msg.msg_dest == MSG_ONE_UNRELIABLE) {
 		edict_t* receiver = msg.ed;
 		
 		if (!isValidPlayer(receiver)) {
@@ -187,6 +190,9 @@ void hookTextMessage(NetMessage& msg) {
 		else {
 			ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval));
 		}
+	}
+	else {
+		msg.send();
 	}
 }
 

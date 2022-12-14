@@ -150,6 +150,8 @@ void ClientJoin(edict_t* plr) {
 		bool joinerShouldListen = joinerState.muteList.find(steamid) == joinerState.muteList.end();
 		g_engfuncs.pfnVoice_SetClientListening(joinerIdx, i, joinerShouldListen);
 	}
+
+	RETURN_META(MRES_IGNORED);
 }
 
 void ClientCommand(edict_t* plr) {
