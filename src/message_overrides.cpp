@@ -168,7 +168,7 @@ void hookTextMessage(NetMessage& msg) {
 
 			PlayerState& state = getPlayerState(receiver);
 			if (state.muteList.find(senderid) != state.muteList.end()) {
-				ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval));
+				ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval.c_str()));
 			}
 			else {
 				int sendMode = msg.msg_dest == MSG_ALL ? MSG_ONE : MSG_ONE_UNRELIABLE;
@@ -188,7 +188,7 @@ void hookTextMessage(NetMessage& msg) {
 			msg.send();
 		}
 		else {
-			ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval));
+			ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval.c_str()));
 		}
 	}
 	else {
