@@ -157,6 +157,7 @@ void hookTextMessage(NetMessage& msg) {
 	}
 
 	string senderid = getPlayerUniqueId(sender);
+	string chatMsg = msg.args[1].sval;
 
 	if (msg.msg_dest == MSG_ALL || msg.msg_dest == MSG_BROADCAST) {
 		for (int i = 1; i <= gpGlobals->maxClients; i++) {
@@ -168,7 +169,8 @@ void hookTextMessage(NetMessage& msg) {
 
 			PlayerState& state = getPlayerState(receiver);
 			if (state.muteList.find(senderid) != state.muteList.end()) {
-				ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval.c_str()));
+				//if (chatMsg.size())
+				//	ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", chatMsg.c_str()));
 			}
 			else {
 				int sendMode = msg.msg_dest == MSG_ALL ? MSG_ONE : MSG_ONE_UNRELIABLE;
@@ -188,7 +190,8 @@ void hookTextMessage(NetMessage& msg) {
 			msg.send();
 		}
 		else {
-			ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", msg.args[1].sval.c_str()));
+			//if (chatMsg.size())
+			//	ClientPrint(receiver, HUD_PRINTCONSOLE, UTIL_VarArgs("[Muted] %s", chatMsg.c_str()));
 		}
 	}
 	else {
