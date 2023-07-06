@@ -310,7 +310,16 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args) {
 					return true;
 				}
 				string steamId = g_EngineFuncs.GetPlayerAuthId( target.edict() );
-				toggleMute(plr, steamId);
+				
+				if (args.ArgC() > 2) {
+					if (atoi(args[2]) != 0) {
+						addMute(plr, steamId);
+					} else {
+						removeMute(plr, steamId);
+					}
+				} else {
+					toggleMute(plr, steamId);
+				}				
 			} else {
 				openPlayerListMuteMenu(plr, 0);
 			}
