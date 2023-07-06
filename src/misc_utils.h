@@ -26,4 +26,5 @@ void ClientPrint(edict_t* client, int msg_dest, const char* msg_name, const char
 
 char* UTIL_VarArgs(char* format, ...);
 
+PlayerState& getPlayerState(string steamId);
 PlayerState& getPlayerState(edict_t* plr);

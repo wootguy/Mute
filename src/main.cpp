@@ -19,7 +19,7 @@ plugin_info_t Plugin_info = {
 	PT_ANYPAUSE,	// (when) unloadable
 };
 
-map<string, PlayerState*> g_player_states;
+map<string, PlayerState> g_player_states;
 
 void metamute() {
 	int ireceiver = atoi(CMD_ARGV(1));
@@ -105,25 +105,36 @@ void metamute() {
 	edict_t* sender = getPlayerByUniqueId(senderId);
 	int isender = ENTINDEX(sender);
 
-	if (ireceiver == isender) {
+	if (sender && ireceiver == isender) {
 		ClientPrint(receiver, HUD_PRINTTALK, "** You can't mute yourself\n");
 		return;
 	}
+
+	if (blisten) {
+		state.muteList.erase(senderId);
+	}
+	else {
+		state.muteList.insert(senderId);
+	}
+
 	if (!isValidPlayer(sender)) {
-		ClientPrint(receiver, HUD_PRINTTALK, "** Failed to mute player\n");
+		//ClientPrint(receiver, HUD_PRINTTALK, "** Failed to mute player\n");
 		return;
 	}
 
 	ClientPrint(receiver, HUD_PRINTTALK, UTIL_VarArgs("** %s player \n%s\n", action, STRING(sender->v.netname)));
 
-	if (blisten) {
-		state.muteList.erase(getPlayerUniqueId(sender));
-	}
-	else {
-		state.muteList.insert(getPlayerUniqueId(sender));
-	}
-
 	g_engfuncs.pfnVoice_SetClientListening(ireceiver, isender, blisten);
+}
+
+void metajail() {
+	string prisonerId = CMD_ARGV(1);
+	int isJailed = atoi(CMD_ARGV(2));
+
+	println("[Mute] Jail %s %d", prisonerId.c_str(), isJailed);
+
+	PlayerState& state = getPlayerState(prisonerId);
+	state.isJailed = isJailed != 0;
 }
 
 void ClientJoin(edict_t* plr) {
@@ -156,6 +167,38 @@ void ClientJoin(edict_t* plr) {
 
 void ClientCommand(edict_t* plr) {
 	const char* cmd = CMD_ARGC() > 0 ? CMD_ARGV(0) : "";
+
+	PlayerState& state = getPlayerState(plr);
+
+	if (state.isJailed) {
+		// TODO: load from file
+		static set<string> g_cmd_filter = {
+			".vote",
+			".view",
+			".viewlast",
+			"rtv",
+			"nom",
+			"nominate",
+			"rnom",
+			".observer",
+			".observe",
+			".spectate",
+			"afk?",
+			"ending?",
+			"endless?",
+			"survival?",
+			"series?"
+		};
+
+		string cmd = toLowerCase(CMD_ARGV(0));
+		string arg = CMD_ARGC() > 1 ? toLowerCase(CMD_ARGV(1)) : "";
+		bool isChatCmd = (cmd == "say" || cmd == "say_team") && arg.length();
+
+		if (g_cmd_filter.find(cmd) != g_cmd_filter.end() || (isChatCmd && g_cmd_filter.find(arg) != g_cmd_filter.end())) {
+			ClientPrint(plr, HUD_PRINTCONSOLE, "[JAIL] Command forbidden while in jail.\n");
+			RETURN_META(MRES_SUPERCEDE);
+		}
+	}
 
 	if (strcmp(cmd, "vban") == 0) {
 		PlayerState& state = getPlayerState(plr);
@@ -199,6 +242,7 @@ void PluginInit() {
 	g_engine_hooks_post.pfnMessageEnd = MessageEnd_post;
 
 	REG_SVR_COMMAND("metamute", metamute);
+	REG_SVR_COMMAND("metajail", metajail);
 }
 
 void PluginExit() {}
