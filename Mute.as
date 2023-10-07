@@ -309,7 +309,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args) {
 				if (target is null) {
 					return true;
 				}
-				string steamId = g_EngineFuncs.GetPlayerAuthId( target.edict() );
+				string steamId = g_EngineFuncs.GetPlayerAuthId( target.edict() ).ToLowercase();
 				
 				if (args.ArgC() > 2) {
 					if (atoi(args[2]) != 0) {
