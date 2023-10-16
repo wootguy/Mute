@@ -10,3 +10,7 @@ struct PlayerState {
 };
 
 extern std::map<std::string, PlayerState> g_player_states;
+
+PlayerState& getPlayerState(string steamId);
+
+PlayerState& getPlayerState(edict_t* plr);

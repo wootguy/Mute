@@ -1,10 +1,11 @@
-#include "meta_init.h"
+#include "mmlib.h"
 #include <string>
-#include "misc_utils.h"
 #include <map>
 #include <set>
 #include "message_overrides.h"
 #include "main.h"
+
+using namespace std;
 
 // Description of plugin
 plugin_info_t Plugin_info = {
@@ -20,6 +21,20 @@ plugin_info_t Plugin_info = {
 };
 
 map<string, PlayerState> g_player_states;
+
+PlayerState& getPlayerState(string steamId) {
+	steamId = toLowerCase(steamId);
+
+	if (g_player_states.find(steamId) == g_player_states.end()) {
+		g_player_states[steamId] = PlayerState();
+	}
+
+	return g_player_states[steamId];
+}
+
+PlayerState& getPlayerState(edict_t* plr) {
+	return getPlayerState(getPlayerUniqueId(plr));
+}
 
 void metamute() {
 	int ireceiver = atoi(CMD_ARGV(1));
